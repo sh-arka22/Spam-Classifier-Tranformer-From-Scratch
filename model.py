@@ -126,21 +126,32 @@ class TransformerBlock(nn.Module):
 
 
     def forward(self, x):
-        # Shortcut connection for attention block
-        shortcut = x
-        x = self.norm1(x)
-        x = self.att(x)  # Shape [batch_size, num_tokens, emb_size]
-        x = self.drop_shortcut(x)
-        x = x + shortcut  # Add the original input back
+        # Initial input shape: (B, N, D)
+        
+        # 1. Attention Block
+        shortcut = x                   # (B, N, D) - Save for residual connection
+        x = self.norm1(x)              # (B, N, D) - LayerNorm preserves shape
+        
+        x = self.att(x)                # (B, N, D) - Attention output matches input dim
+        # Note: Inside attention, it splits into heads, but projects back to D at the end
+        
+        x = self.drop_shortcut(x)      # (B, N, D) - Dropout zeroes elements, preserves shape
+        x = x + shortcut               # (B, N, D) - Element-wise addition
 
-        # Shortcut connection for feed-forward block
-        shortcut = x
-        x = self.norm2(x)
-        x = self.ff(x)
-        x = self.drop_shortcut(x)
-        x = x + shortcut  # Add the original input back
+        # 2. Feed-Forward Block
+        shortcut = x                   # (B, N, D) - Save updated x for next residual
+        x = self.norm2(x)              # (B, N, D)
+        
+        x = self.ff(x)                 # (B, N, D)
+        # Detailed FF dimensions:
+        #   - Linear 1: (B, N, D) -> (B, N, 4*D)  (Expands 4x)
+        #   - GELU:     (B, N, 4*D)               (Activation)
+        #   - Linear 2: (B, N, 4*D) -> (B, N, D)  (Projects back)
+        
+        x = self.drop_shortcut(x)      # (B, N, D)
+        x = x + shortcut               # (B, N, D)
 
-        return x
+        return x                       # Final Output: (B, N, D)
 
 
 
