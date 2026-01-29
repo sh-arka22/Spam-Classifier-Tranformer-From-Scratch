@@ -1,0 +1,28 @@
+# Virtual Environment
+env/
+.venv/
+venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Model weights and metadata
+*.pth
+gpt2_weights/
+model_metadata.txt
+
+# Dataset files
+data/
+*.csv
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

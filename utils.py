@@ -24,18 +24,28 @@ def download_and_prepare_data(data_dir="data"):
         # Load and process
         df = pd.read_csv(extracted_path, sep="\t", header=None, names=["Label", "Text"])
         
-        # Create balanced dataset
         # 1. Map labels
         df["Label"] = df["Label"].map({"ham": 0, "spam": 1})
         
-        # 2. Random split
-        shuffled_df = df.sample(frac=1, random_state=123).reset_index(drop=True)
-        train_idx = int(0.7 * len(shuffled_df))
-        val_idx = int(0.8 * len(shuffled_df))
+        # 2. Create balanced dataset (Undersampling)
+        spam_df = df[df["Label"] == 1]
+        ham_df = df[df["Label"] == 0]
         
-        train_df = shuffled_df.iloc[:train_idx]
-        val_df = shuffled_df.iloc[train_idx:val_idx]
-        test_df = shuffled_df.iloc[val_idx:]
+        # Sample ham to match spam count
+        ham_sampled_df = ham_df.sample(n=len(spam_df), random_state=123)
+        
+        # Combine and shuffle
+        balanced_df = pd.concat([spam_df, ham_sampled_df]).sample(frac=1, random_state=123).reset_index(drop=True)
+        
+        print(f"Balanced dataset: {len(spam_df)} spam, {len(ham_sampled_df)} ham. Total: {len(balanced_df)}")
+        
+        # 3. Random split
+        train_idx = int(0.7 * len(balanced_df))
+        val_idx = int(0.8 * len(balanced_df))
+        
+        train_df = balanced_df.iloc[:train_idx]
+        val_df = balanced_df.iloc[train_idx:val_idx]
+        test_df = balanced_df.iloc[val_idx:]
         
         train_df.to_csv(data_path / "train.csv", index=False)
         val_df.to_csv(data_path / "validation.csv", index=False)

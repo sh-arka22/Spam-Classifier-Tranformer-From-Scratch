@@ -43,7 +43,6 @@ def modify_model_for_classification(model, num_classes=2):
         param.requires_grad = True
     
     # Also make last transformer block and final layer norm trainable
-    # This "partial fine-tuning" often yields better results than just training the head
     for param in model.trf_blocks[-1].parameters():
         param.requires_grad = True
     for param in model.final_norm.parameters():
@@ -156,10 +155,15 @@ def main():
         print(f"\nText: {text[:50]}...")
         print(f"Classification: {result}")
     
-    # Step 8: Save model
-    print("\n=== Step 8: Saving Model ===")
+    # Step 8: Save model and metadata
+    print("\n=== Step 8: Saving Model and Metadata ===")
     torch.save(model.state_dict(), "spam_classifier_model.pth")
     print("Model saved to spam_classifier_model.pth")
+    
+    # Save max_length for prediction
+    with open("model_metadata.txt", "w") as f:
+        f.write(str(max_length))
+    print(f"Max length ({max_length}) saved to model_metadata.txt")
 
 
 if __name__ == "__main__":

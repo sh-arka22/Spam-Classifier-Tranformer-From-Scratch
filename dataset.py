@@ -4,7 +4,12 @@ import pandas as pd
 
 class SpamDataset(Dataset):
     def __init__(self, csv_file, tokenizer, max_length=None, pad_token_id=50256):
-        self.data = pd.read_csv(csv_file)
+        if isinstance(csv_file, pd.DataFrame):
+            self.data = csv_file
+        else:
+             # Assume it's a file path (str or Path) that pd.read_csv handles
+            self.data = pd.read_csv(csv_file)
+
         self.encoded_texts = [
             tokenizer.encode(text) for text in self.data["Text"]
         ]
