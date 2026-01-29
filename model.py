@@ -80,7 +80,7 @@
 #         attn_scores.masked_fill_(mask_bool, -torch.inf)
         
 #         attn_weights = torch.softmax(attn_scores / keys.shape[-1]**0.5, dim=-1)
-#         attn_weights = self.dropout(attn_weights)
+#         attn_weights = self.dropout(attn_weights) 
 
 #         # Shape: (b, num_tokens, num_heads, head_dim)
 #         context_vec = (attn_weights @ values).transpose(1, 2) 
@@ -93,91 +93,91 @@
 
 
 
-class TransformerBlock(nn.Module):
-    def __init__(self, cfg):
-        super().__init__()
+# class TransformerBlock(nn.Module):
+#     def __init__(self, cfg):
+#         super().__init__()
 
-        # 1st part
-        self.norm1 = LayerNorm(cfg["emb_dim"])
+#         # 1st part
+#         self.norm1 = LayerNorm(cfg["emb_dim"])
 
-        #2nd part
-        self.att = MultiHeadAttention(
-            d_in=cfg["emb_dim"],
-            d_out=cfg["emb_dim"],
-            context_length=cfg["context_length"],
-            num_heads=cfg["n_heads"], 
-            dropout=cfg["drop_rate"],
-            qkv_bias=cfg["qkv_bias"]
-        )
+#         #2nd part
+#         self.att = MultiHeadAttention(
+#             d_in=cfg["emb_dim"],
+#             d_out=cfg["emb_dim"],
+#             context_length=cfg["context_length"],
+#             num_heads=cfg["n_heads"], 
+#             dropout=cfg["drop_rate"],
+#             qkv_bias=cfg["qkv_bias"]
+#         )
 
-        # 3rd part
-        self.drop_shortcut = nn.Dropout(cfg["drop_rate"])
+#         # 3rd part
+#         self.drop_shortcut = nn.Dropout(cfg["drop_rate"])
 
-        # 4th part
-        self.norm2 = LayerNorm(cfg["emb_dim"])
+#         # 4th part
+#         self.norm2 = LayerNorm(cfg["emb_dim"])
 
-        # 5th part
-        self.ff = FeedForward(cfg)
+#         # 5th part
+#         self.ff = FeedForward(cfg)
 
-        # 6th part
-        # repeat 3rd part
+#         # 6th part
+#         # repeat 3rd part
 
         
 
 
-    def forward(self, x):
-        # Initial input shape: (B, N, D)
+#     def forward(self, x):
+#         # Initial input shape: (B, N, D)
         
-        # 1. Attention Block
-        shortcut = x                   # (B, N, D) - Save for residual connection
-        x = self.norm1(x)              # (B, N, D) - LayerNorm preserves shape
+#         # 1. Attention Block
+#         shortcut = x                   # (B, N, D) - Save for residual connection
+#         x = self.norm1(x)              # (B, N, D) - LayerNorm preserves shape
         
-        x = self.att(x)                # (B, N, D) - Attention output matches input dim
-        # Note: Inside attention, it splits into heads, but projects back to D at the end
+#         x = self.att(x)                # (B, N, D) - Attention output matches input dim
+#         # Note: Inside attention, it splits into heads, but projects back to D at the end
         
-        x = self.drop_shortcut(x)      # (B, N, D) - Dropout zeroes elements, preserves shape
-        x = x + shortcut               # (B, N, D) - Element-wise addition
+#         x = self.drop_shortcut(x)      # (B, N, D) - Dropout zeroes elements, preserves shape
+#         x = x + shortcut               # (B, N, D) - Element-wise addition
 
-        # 2. Feed-Forward Block
-        shortcut = x                   # (B, N, D) - Save updated x for next residual
-        x = self.norm2(x)              # (B, N, D)
+#         # 2. Feed-Forward Block
+#         shortcut = x                   # (B, N, D) - Save updated x for next residual
+#         x = self.norm2(x)              # (B, N, D)
         
-        x = self.ff(x)                 # (B, N, D)
-        # Detailed FF dimensions:
-        #   - Linear 1: (B, N, D) -> (B, N, 4*D)  (Expands 4x)
-        #   - GELU:     (B, N, 4*D)               (Activation)
-        #   - Linear 2: (B, N, 4*D) -> (B, N, D)  (Projects back)
+#         x = self.ff(x)                 # (B, N, D)
+#         # Detailed FF dimensions:
+#         #   - Linear 1: (B, N, D) -> (B, N, 4*D)  (Expands 4x)
+#         #   - GELU:     (B, N, 4*D)               (Activation)
+#         #   - Linear 2: (B, N, 4*D) -> (B, N, D)  (Projects back)
         
-        x = self.drop_shortcut(x)      # (B, N, D)
-        x = x + shortcut               # (B, N, D)
+#         x = self.drop_shortcut(x)      # (B, N, D)
+#         x = x + shortcut               # (B, N, D)
 
-        return x                       # Final Output: (B, N, D)
+#         return x                       # Final Output: (B, N, D)
 
 
 
-class GPTModel(nn.Module):
-    def __init__(self, cfg):
-        super().__init__()
-        self.tok_emb = nn.Embedding(cfg["vocab_size"], cfg["emb_dim"])
-        self.pos_emb = nn.Embedding(cfg["context_length"], cfg["emb_dim"])
-        self.drop_emb = nn.Dropout(cfg["drop_rate"])
+# class GPTModel(nn.Module):
+#     def __init__(self, cfg):
+#         super().__init__()
+#         self.tok_emb = nn.Embedding(cfg["vocab_size"], cfg["emb_dim"])
+#         self.pos_emb = nn.Embedding(cfg["context_length"], cfg["emb_dim"])
+#         self.drop_emb = nn.Dropout(cfg["drop_rate"])
 
-        self.trf_blocks = nn.Sequential(
-            *[TransformerBlock(cfg) for _ in range(cfg["n_layers"])])
+#         self.trf_blocks = nn.Sequential(
+#             *[TransformerBlock(cfg) for _ in range(cfg["n_layers"])])
 
-        self.final_norm = LayerNorm(cfg["emb_dim"])
-        self.out_head = nn.Linear(cfg["emb_dim"], cfg["vocab_size"], bias=False)
+#         self.final_norm = LayerNorm(cfg["emb_dim"])
+#         self.out_head = nn.Linear(cfg["emb_dim"], cfg["vocab_size"], bias=False)
 
-    def forward(self, in_idx):
-        batch_size, seq_len = in_idx.shape
-        tok_embeds = self.tok_emb(in_idx)
-        pos_embeds = self.pos_emb(torch.arange(seq_len, device=in_idx.device))
-        x = tok_embeds + pos_embeds  # Shape [batch_size, num_tokens, emb_size]
-        x = self.drop_emb(x)
-        x = self.trf_blocks(x)
-        x = self.final_norm(x)
-        logits = self.out_head(x)
-        return logits
+#     def forward(self, in_idx):
+#         batch_size, seq_len = in_idx.shape
+#         tok_embeds = self.tok_emb(in_idx)
+#         pos_embeds = self.pos_emb(torch.arange(seq_len, device=in_idx.device))
+#         x = tok_embeds + pos_embeds  # Shape [batch_size, num_tokens, emb_size]
+#         x = self.drop_emb(x)
+#         x = self.trf_blocks(x)
+#         x = self.final_norm(x)
+#         logits = self.out_head(x)
+#         return logits
 
 
 import torch
