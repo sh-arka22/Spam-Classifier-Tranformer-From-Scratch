@@ -21,12 +21,15 @@ The classifier uses the **GPT-2 124M** model as a backbone. We modify the final 
 - **Dynamic Padding**: Automatically calculates the longest sentence in your training set and pads all inputs to that exact length for maximum performance.
 - **Metadata Persistence**: Saves training metadata (`max_length`) so the prediction script always stays perfectly aligned with the trained model.
 - **Interactive Inference**: A standalone prediction script to test the model on any text input.
+- **Web Interface**: A premium, responsive web UI built with Flask and Vanilla CSS for easy browser-based classification.
 
 ## 📁 Project Structure
 
 - `main.py`: The orchestrator—downloads weights/data, treats the model, and runs the training loop.
 - `model.py`: The heart of the project—defining the GPT architecture, Attention mechanisms, and Transformer blocks.
 - `predict.py`: Standalone script for interactive spam detection.
+- `app.py`: Flask backend for the web interface.
+- `templates/index.html`: Premium frontend interface.
 - `dataset.py`: Handles data loading, tokenization, and dynamic padding.
 - `utils.py`: Data preparation, undersampling logic, and tokenizer initialization.
 - `train.py`: The fine-tuning logic and loss functions.
@@ -61,12 +64,19 @@ python main.py
 ```
 After training, the model will be saved as `spam_classifier_model.pth` and metadata as `model_metadata.txt`.
 
-### 2. Predicting Spam
+### 2. Predicting Spam via CLI
 Once the model is trained, use the interactive prediction script:
 ```bash
 python predict.py
 ```
 Enter any text message to see if the model classifies it as **🔴 SPAM** or **🟢 NOT SPAM**.
+
+### 3. Predicting Spam via Web UI
+Start the Flask server:
+```bash
+python app.py
+```
+Open your browser and navigate to `http://127.0.0.1:5001`.
 
 ---
 
