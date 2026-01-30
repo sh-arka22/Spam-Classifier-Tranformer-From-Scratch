@@ -1,5 +1,5 @@
 # Spam Classifier: Transformer from Scratch (Fine-Tuning GPT-2)
-
+## link: https://www.youtube.com/watch?v=JP2kOpN_aDI
 This repository contains a modular implementation of a Spam Classifier built on top of the GPT-2 (124M) architecture. Instead of just using a library, this project demonstrates how to load pretrained OpenAI weights into a custom-built Transformer structure and fine-tune it for a specific classification task.
 
 ## 🚀 Overview
